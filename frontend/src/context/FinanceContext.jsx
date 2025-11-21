@@ -23,6 +23,13 @@ import {
   initialBankTransactions,
   initialBankDeposits,
   initialCashFlowCategories,
+  initialFixedAssets,
+  initialassetCategories,
+  initialDepreciationMethods,
+  initialLocations,
+  initialDepartments,
+  consolidationEntities,
+  initialIntercompanyTransactions,
 } from "../data/data";
 
 const FinanceContext = createContext();
@@ -46,24 +53,32 @@ const isValidDate = (dateString) => !isNaN(Date.parse(dateString));
 const roundCurrency = (amount) => Math.round(amount * 100) / 100;
 
 export const FinanceProvider = ({ children, sharedState }) => {
-  const [bankDeposits, setBankDeposits] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const {
-    customers: sharedCustomers = [],
-    setCustomers: setSharedCustomers,
-    logAudit: sharedLogAudit,
-    user,
-  } = sharedState || {};
+  // Fixed Assets states with proper initialization
+  const [assets, setAssets] = useState(initialFixedAssets || []);
+  const [assetCategories, setAssetCategories] = useState(
+    initialassetCategories || []
+  );
+  const [depreciationMethods, setDepreciationMethods] = useState(
+    initialDepreciationMethods || []
+  );
+  const [locations, setLocations] = useState(initialLocations || []);
+  const [departments, setDepartments] = useState(initialDepartments || []);
+  const [depreciationHistory, setDepreciationHistory] = useState([]);
+  const [transferHistory, setTransferHistory] = useState([]);
+  const [disposalHistory, setDisposalHistory] = useState([]);
+
   // Bank & Cash Management states with proper initialization
   const [bankAccounts, setBankAccounts] = useState(initialBankAccounts || []);
   const [bankTransactions, setBankTransactions] = useState(
     initialBankTransactions || []
   );
+  const [bankDeposits, setBankDeposits] = useState(initialBankDeposits || []);
   const [cashFlowCategories, setCashFlowCategories] = useState(
     initialCashFlowCategories || []
   );
 
-  /* --------------------------- LOCAL STORAGE HELPERS --------------------------- */
+  // Finance Consolidation states
+
   const load = useCallback((key, fallback) => {
     try {
       const saved = localStorage.getItem(key);
@@ -77,6 +92,34 @@ export const FinanceProvider = ({ children, sharedState }) => {
       return fallback;
     }
   }, []);
+  const [entities, setEntities] = useState(consolidationEntities || []);
+  const [intercompanyTransactions, setIntercompanyTransactions] = useState(
+    initialIntercompanyTransactions || []
+  );
+  const [consolidationSettings, setConsolidationSettings] = useState({
+    reportingCurrency: "INR",
+    autoConsolidate: true,
+    eliminationEntries: true,
+    intercompanyReconciliation: true,
+    consolidationMethod: "full",
+    reportingPeriod: "monthly",
+  });
+  const [consolidationHistory, setConsolidationHistory] = useState(() =>
+    load("consolidationHistory", [])
+  );
+  const [eliminationEntries, setEliminationEntries] = useState(() =>
+    load("eliminationEntries", [])
+  );
+
+  const [customers, setCustomers] = useState([]);
+  const {
+    customers: sharedCustomers = [],
+    setCustomers: setSharedCustomers,
+    logAudit: sharedLogAudit,
+    user,
+  } = sharedState || {};
+
+  /* --------------------------- LOCAL STORAGE HELPERS --------------------------- */
 
   const save = useCallback((key, data) => {
     try {
@@ -119,6 +162,25 @@ export const FinanceProvider = ({ children, sharedState }) => {
   );
   const [auditLogs, setAuditLogs] = useState(() => load("auditLogs", []));
 
+  // Load consolidation data
+  useEffect(() => {
+    const savedEntities = load("consolidationEntities", []);
+    if (savedEntities.length === 0) {
+      setEntities(consolidationEntities);
+    }
+
+    const savedIntercompany = load("intercompanyTransactions", []);
+    if (savedIntercompany.length === 0) {
+      setIntercompanyTransactions(initialIntercompanyTransactions);
+    }
+
+    const savedHistory = load("consolidationHistory", []);
+    setConsolidationHistory(savedHistory);
+
+    const savedEliminations = load("eliminationEntries", []);
+    setEliminationEntries(savedEliminations);
+  }, [load]);
+
   /* --------------------------- AUTO-SAVE TO LOCALSTORAGE --------------------------- */
   useEffect(() => {
     save("coa", chartOfAccounts);
@@ -133,6 +195,11 @@ export const FinanceProvider = ({ children, sharedState }) => {
     save("assets", fixedAssets);
     save("financeData", financeData);
     save("auditLogs", auditLogs);
+    save("consolidationEntities", entities);
+    save("intercompanyTransactions", intercompanyTransactions);
+    save("consolidationSettings", consolidationSettings);
+    save("consolidationHistory", consolidationHistory);
+    save("eliminationEntries", eliminationEntries);
   }, [
     chartOfAccounts,
     journalEntries,
@@ -146,6 +213,12 @@ export const FinanceProvider = ({ children, sharedState }) => {
     fixedAssets,
     financeData,
     auditLogs,
+    entities,
+    intercompanyTransactions,
+    consolidationSettings,
+    consolidationHistory,
+    eliminationEntries,
+    save,
   ]);
 
   /* --------------------------- CURRENCY FORMATTER --------------------------- */
@@ -223,26 +296,37 @@ export const FinanceProvider = ({ children, sharedState }) => {
     [accountsMap, chartOfAccounts]
   );
 
-  const validateAccount = useCallback((account) => {
+  const validateAccount = useCallback((account, isCreation = false) => {
     const errors = [];
 
-    if (!account.id) errors.push("Account ID is required");
-    if (!account.name || account.name.trim() === "")
+    // Only require ID for updates, not for creation
+    if (!isCreation && !account.id) {
+      errors.push("Account ID is required");
+    }
+
+    if (!account.name || account.name.trim() === "") {
       errors.push("Account name is required");
+    }
+
     if (!account.type || !ACCOUNT_TYPES.includes(account.type)) {
       errors.push(`Account type must be one of: ${ACCOUNT_TYPES.join(", ")}`);
     }
-    if (account.opening && typeof account.opening !== "number")
+
+    if (account.opening && typeof account.opening !== "number") {
       errors.push("Opening balance must be a number");
-    if (account.balance && typeof account.balance !== "number")
+    }
+
+    if (account.balance && typeof account.balance !== "number") {
       errors.push("Balance must be a number");
+    }
 
     return errors;
   }, []);
 
   const createAccount = useCallback(
     (accountData) => {
-      const validationErrors = validateAccount(accountData);
+      // For creation, don't require ID yet
+      const validationErrors = validateAccount(accountData, true);
       if (validationErrors.length > 0) {
         throw new Error(
           `Account validation failed: ${validationErrors.join(", ")}`
@@ -273,7 +357,8 @@ export const FinanceProvider = ({ children, sharedState }) => {
       if (!existingAccount) throw new Error("Account not found");
 
       const updatedAccount = { ...existingAccount, ...updates };
-      const validationErrors = validateAccount(updatedAccount);
+      // For updates, require ID
+      const validationErrors = validateAccount(updatedAccount, false);
       if (validationErrors.length > 0) {
         throw new Error(
           `Account validation failed: ${validationErrors.join(", ")}`
@@ -662,6 +747,466 @@ export const FinanceProvider = ({ children, sharedState }) => {
     [chartOfAccounts, getBalance]
   );
 
+  /* --------------------------- FINANCE CONSOLIDATION --------------------------- */
+
+  // Entity Management
+  const addEntity = useCallback(
+    (entityData) => {
+      const newEntity = {
+        id: `entity-${Date.now()}`,
+        isActive: true,
+        exchangeRate: 1,
+        ...entityData,
+        createdAt: new Date().toISOString(),
+      };
+
+      setEntities((prev) => [...prev, newEntity]);
+      logAudit("Entity Added", newEntity);
+      return newEntity;
+    },
+    [logAudit]
+  );
+
+  const updateEntity = useCallback(
+    (entityId, updates) => {
+      setEntities((prev) =>
+        prev.map((entity) =>
+          entity.id === entityId
+            ? { ...entity, ...updates, updatedAt: new Date().toISOString() }
+            : entity
+        )
+      );
+      logAudit("Entity Updated", { entityId, updates });
+    },
+    [logAudit]
+  );
+
+  const toggleEntityActive = useCallback(
+    (entityId) => {
+      setEntities((prev) =>
+        prev.map((entity) =>
+          entity.id === entityId
+            ? { ...entity, isActive: !entity.isActive }
+            : entity
+        )
+      );
+      logAudit("Entity Status Toggled", { entityId });
+    },
+    [logAudit]
+  );
+
+  const deleteEntity = useCallback(
+    (entityId) => {
+      setEntities((prev) => prev.filter((entity) => entity.id !== entityId));
+      logAudit("Entity Deleted", { entityId });
+    },
+    [logAudit]
+  );
+
+  const updateExchangeRate = useCallback(
+    (entityId, newRate) => {
+      setEntities((prev) =>
+        prev.map((entity) =>
+          entity.id === entityId
+            ? {
+                ...entity,
+                exchangeRate: newRate,
+                previousExchangeRate: entity.exchangeRate,
+                rateUpdatedAt: new Date().toISOString(),
+              }
+            : entity
+        )
+      );
+      logAudit("Exchange Rate Updated", { entityId, newRate });
+    },
+    [logAudit]
+  );
+
+  // Currency Conversion
+  const convertCurrency = useCallback(
+    (amount, fromCurrency, toCurrency, customRate = null) => {
+      if (fromCurrency === toCurrency) return amount;
+
+      const entity = entities.find((e) => e.currency === fromCurrency);
+      const rate = customRate || (entity ? entity.exchangeRate : 1);
+
+      return roundCurrency(amount * rate);
+    },
+    [entities]
+  );
+
+  // Consolidated Financial Reports
+  const getConsolidatedBalanceSheet = useCallback(
+    (asOfDate, selectedEntities = null) => {
+      const activeEntities =
+        selectedEntities || entities.filter((e) => e.isActive);
+
+      const consolidated = {
+        assets: { items: [], total: 0 },
+        liabilities: { items: [], total: 0 },
+        equity: { items: [], total: 0 },
+        entities: activeEntities.map((e) => ({
+          code: e.code,
+          name: e.name,
+          currency: e.currency,
+        })),
+        asOfDate,
+        reportingCurrency: consolidationSettings.reportingCurrency,
+        totalAssets: 0,
+        totalLiabilitiesEquity: 0,
+        isBalanced: false,
+      };
+
+      // For demo - actual implementation would fetch data for each entity
+      const baseBalanceSheet = getBalanceSheet(asOfDate);
+
+      // Consolidate base data (in real scenario, this would be per entity)
+      baseBalanceSheet.assets.items.forEach((asset) => {
+        const consolidatedAsset = {
+          ...asset,
+          entityBreakdown: {},
+        };
+
+        activeEntities.forEach((entity) => {
+          const convertedBalance = convertCurrency(
+            asset.balance,
+            entity.currency,
+            consolidationSettings.reportingCurrency,
+            entity.exchangeRate
+          );
+          consolidatedAsset.entityBreakdown[entity.code] = convertedBalance;
+        });
+
+        consolidatedAsset.balance = Object.values(
+          consolidatedAsset.entityBreakdown
+        ).reduce((sum, bal) => sum + bal, 0);
+
+        consolidated.assets.items.push(consolidatedAsset);
+        consolidated.assets.total += consolidatedAsset.balance;
+      });
+
+      consolidated.totalAssets = consolidated.assets.total;
+      consolidated.totalLiabilitiesEquity = consolidated.totalAssets;
+      consolidated.isBalanced = true;
+
+      return consolidated;
+    },
+    [entities, consolidationSettings, getBalanceSheet, convertCurrency]
+  );
+
+  const getConsolidatedProfitAndLoss = useCallback(
+    (fromDate, toDate, selectedEntities = null) => {
+      const activeEntities =
+        selectedEntities || entities.filter((e) => e.isActive);
+
+      const basePnl = getProfitAndLoss(fromDate, toDate);
+
+      const consolidated = {
+        revenue: 0,
+        expenses: 0,
+        grossProfit: 0,
+        margin: 0,
+        entities: activeEntities.map((e) => ({ code: e.code, name: e.name })),
+        period: { fromDate, toDate },
+        entityBreakdown: {},
+      };
+
+      // Calculate consolidated figures with currency conversion
+      activeEntities.forEach((entity) => {
+        const entityRevenue = convertCurrency(
+          basePnl.revenue * 0.3, // Demo - real would have actual entity data
+          entity.currency,
+          consolidationSettings.reportingCurrency,
+          entity.exchangeRate
+        );
+
+        const entityExpenses = convertCurrency(
+          basePnl.expenses * 0.3,
+          entity.currency,
+          consolidationSettings.reportingCurrency,
+          entity.exchangeRate
+        );
+
+        consolidated.entityBreakdown[entity.code] = {
+          revenue: entityRevenue,
+          expenses: entityExpenses,
+          profit: entityRevenue - entityExpenses,
+        };
+
+        consolidated.revenue += entityRevenue;
+        consolidated.expenses += entityExpenses;
+      });
+
+      consolidated.grossProfit = consolidated.revenue - consolidated.expenses;
+      consolidated.margin = consolidated.revenue
+        ? roundCurrency((consolidated.grossProfit / consolidated.revenue) * 100)
+        : 0;
+
+      return consolidated;
+    },
+    [entities, consolidationSettings, getProfitAndLoss, convertCurrency]
+  );
+
+  const getConsolidatedTrialBalance = useCallback(
+    (asOfDate, selectedEntities = null) => {
+      const activeEntities =
+        selectedEntities || entities.filter((e) => e.isActive);
+
+      const trialBalance = chartOfAccounts.map((account) => {
+        const balance = getBalance(account.id, { toDate: asOfDate });
+        const entityCount = activeEntities.length;
+        const consolidatedBalance = balance * entityCount;
+
+        return {
+          account: account.name,
+          code: account.code,
+          type: account.type,
+          debit: consolidatedBalance > 0 ? consolidatedBalance : 0,
+          credit: consolidatedBalance < 0 ? Math.abs(consolidatedBalance) : 0,
+          entityBreakdown: {},
+        };
+      });
+
+      const totalDebit = trialBalance.reduce((sum, acc) => sum + acc.debit, 0);
+      const totalCredit = trialBalance.reduce(
+        (sum, acc) => sum + acc.credit,
+        0
+      );
+
+      return {
+        data: trialBalance,
+        totalDebit: roundCurrency(totalDebit),
+        totalCredit: roundCurrency(totalCredit),
+        isBalanced: Math.abs(totalDebit - totalCredit) < 0.01,
+        asOfDate,
+        reportingCurrency: consolidationSettings.reportingCurrency,
+      };
+    },
+    [chartOfAccounts, entities, getBalance, consolidationSettings]
+  );
+
+  // Intercompany Transactions
+  const addIntercompanyTransaction = useCallback(
+    (transactionData) => {
+      const fromEntity = entities.find(
+        (e) => e.id === transactionData.fromEntity
+      );
+      const toEntity = entities.find((e) => e.id === transactionData.toEntity);
+
+      const convertedAmount = convertCurrency(
+        transactionData.amount,
+        fromEntity?.currency || "INR",
+        consolidationSettings.reportingCurrency,
+        transactionData.exchangeRate
+      );
+
+      const newTransaction = {
+        id: `ict-${Date.now()}`,
+        ...transactionData,
+        convertedAmount,
+        exchangeRate:
+          transactionData.exchangeRate || fromEntity?.exchangeRate || 1,
+        createdAt: new Date().toISOString(),
+        reconciliationStatus: "pending",
+      };
+
+      setIntercompanyTransactions((prev) => [...prev, newTransaction]);
+      logAudit("Intercompany Transaction Added", newTransaction);
+      return newTransaction;
+    },
+    [entities, consolidationSettings, convertCurrency, logAudit]
+  );
+
+  const reconcileIntercompanyTransaction = useCallback(
+    (transactionId) => {
+      setIntercompanyTransactions((prev) =>
+        prev.map((transaction) =>
+          transaction.id === transactionId
+            ? {
+                ...transaction,
+                reconciliationStatus: "reconciled",
+                reconciledAt: new Date().toISOString(),
+              }
+            : transaction
+        )
+      );
+      logAudit("Intercompany Transaction Reconciled", { transactionId });
+    },
+    [logAudit]
+  );
+
+  const markIntercompanyAsEliminated = useCallback(
+    (transactionId) => {
+      setIntercompanyTransactions((prev) =>
+        prev.map((transaction) =>
+          transaction.id === transactionId
+            ? {
+                ...transaction,
+                reconciliationStatus: "eliminated",
+                eliminatedAt: new Date().toISOString(),
+              }
+            : transaction
+        )
+      );
+      logAudit("Intercompany Transaction Eliminated", { transactionId });
+    },
+    [logAudit]
+  );
+
+  // Elimination Entries
+  const createEliminationEntry = useCallback(
+    (eliminationData) => {
+      const eliminationEntry = {
+        id: `elim-${Date.now()}`,
+        ...eliminationData,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+      };
+
+      setEliminationEntries((prev) => [...prev, eliminationEntry]);
+      logAudit("Elimination Entry Created", eliminationEntry);
+      return eliminationEntry;
+    },
+    [logAudit]
+  );
+
+  const autoGenerateEliminationEntries = useCallback(
+    (period) => {
+      const pendingIntercompany = intercompanyTransactions.filter(
+        (t) => t.reconciliationStatus === "pending"
+      );
+
+      const eliminationEntries = pendingIntercompany.map((transaction) => {
+        return {
+          id: `auto-elim-${transaction.id}`,
+          transactionId: transaction.id,
+          description: `Elimination: ${transaction.description}`,
+          amount: transaction.amount || 0,
+          debitAccount: "Intercompany Elimination",
+          creditAccount: "Intercompany Elimination",
+          period,
+          autoGenerated: true,
+          status: "posted",
+        };
+      });
+
+      setEliminationEntries((prev) => [...prev, ...eliminationEntries]);
+
+      // Mark transactions as eliminated
+      pendingIntercompany.forEach((transaction) => {
+        markIntercompanyAsEliminated(transaction.id);
+      });
+
+      logAudit("Auto Elimination Entries Generated", {
+        count: eliminationEntries.length,
+        period,
+      });
+
+      return eliminationEntries;
+    },
+    [intercompanyTransactions, markIntercompanyAsEliminated, logAudit]
+  );
+
+  // Consolidation Process
+  const runConsolidation = useCallback(
+    (period, selectedEntities = null) => {
+      const consolidationRun = {
+        id: `consolidation-${Date.now()}`,
+        period,
+        timestamp: new Date().toISOString(),
+        entities:
+          selectedEntities ||
+          entities.filter((e) => e.isActive).map((e) => e.id),
+        settings: { ...consolidationSettings },
+        status: "in-progress",
+        results: {},
+      };
+
+      try {
+        // Generate consolidated reports
+        consolidationRun.results = {
+          balanceSheet: getConsolidatedBalanceSheet(
+            period.split("T")[0],
+            selectedEntities
+          ),
+          profitAndLoss: getConsolidatedProfitAndLoss(
+            `${period}-01`,
+            new Date(
+              new Date(`${period}-01`).getFullYear(),
+              new Date(`${period}-01`).getMonth() + 1,
+              0
+            )
+              .toISOString()
+              .slice(0, 10),
+            selectedEntities
+          ),
+          trialBalance: getConsolidatedTrialBalance(
+            period.split("T")[0],
+            selectedEntities
+          ),
+        };
+
+        // Generate elimination entries if enabled
+        if (consolidationSettings.eliminationEntries) {
+          consolidationRun.eliminationEntries =
+            autoGenerateEliminationEntries(period);
+        }
+
+        consolidationRun.status = "completed";
+        consolidationRun.completedAt = new Date().toISOString();
+      } catch (error) {
+        consolidationRun.status = "failed";
+        consolidationRun.error = error.message;
+      }
+
+      setConsolidationHistory((prev) => [
+        consolidationRun,
+        ...prev.slice(0, 49),
+      ]);
+      logAudit("Consolidation Run Completed", consolidationRun);
+
+      return consolidationRun;
+    },
+    [
+      entities,
+      consolidationSettings,
+      getConsolidatedBalanceSheet,
+      getConsolidatedProfitAndLoss,
+      getConsolidatedTrialBalance,
+      autoGenerateEliminationEntries,
+      logAudit,
+    ]
+  );
+
+  // Entity Performance
+  const getEntityPerformance = useCallback(
+    (entityId, fromDate, toDate) => {
+      const entity = entities.find((e) => e.id === entityId);
+      if (!entity) return null;
+
+      const basePnl = getProfitAndLoss(fromDate, toDate);
+
+      return {
+        entity: entity.name,
+        currency: entity.currency,
+        revenue: basePnl.revenue,
+        expenses: basePnl.expenses,
+        profit: basePnl.grossProfit,
+        period: { fromDate, toDate },
+      };
+    },
+    [entities, getProfitAndLoss]
+  );
+
+  // Consolidation Settings
+  const updateConsolidationSettings = useCallback(
+    (updates) => {
+      setConsolidationSettings((prev) => ({ ...prev, ...updates }));
+      logAudit("Consolidation Settings Updated", updates);
+    },
+    [logAudit]
+  );
+
   /* --------------------------- QUICK ACCOUNTS --------------------------- */
   const quickAccounts = useMemo(() => {
     return {
@@ -685,97 +1230,199 @@ export const FinanceProvider = ({ children, sharedState }) => {
   }, [costCenters, journalEntries]);
 
   // Bank & Cash Management Functions
-  const addBankAccount = (accountData) => {
-    const newAccount = {
-      id: `ba${Date.now()}`,
-      ...accountData,
-      createdAt: new Date().toISOString(),
-    };
-    setBankAccounts((prev) => [...(prev || []), newAccount]);
-    return newAccount;
-  };
+  const addBankAccount = useCallback(
+    (accountData) => {
+      const newAccount = {
+        id: `ba${Date.now()}`,
+        name: accountData.name || "Unnamed Account",
+        bankName: accountData.bankName || "Unknown Bank",
+        accountNumber: accountData.accountNumber || "N/A",
+        accountType: accountData.accountType || "checking",
+        balance: accountData.balance || 0,
+        currency: accountData.currency || "USD",
+        status: accountData.status || "active",
+        openingDate:
+          accountData.openingDate || new Date().toISOString().split("T")[0],
+        creditLimit: accountData.creditLimit || 0,
+        currentBalance: accountData.currentBalance || accountData.balance || 0,
+        availableBalance:
+          accountData.availableBalance ||
+          (accountData.accountType === "credit"
+            ? accountData.creditLimit
+            : accountData.balance || 0),
+        isReconciled: accountData.isReconciled || false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-  const updateBankAccount = (accountId, updates) => {
-    setBankAccounts((prev) =>
-      (prev || []).map((account) =>
-        account.id === accountId ? { ...account, ...updates } : account
-      )
-    );
-  };
-
-  const deleteBankAccount = (accountId) => {
-    setBankAccounts((prev) =>
-      (prev || []).filter((account) => account.id !== accountId)
-    );
-  };
-
-  const addBankTransaction = (transactionData) => {
-    const newTransaction = {
-      id: `bt${Date.now()}`,
-      ...transactionData,
-      createdAt: new Date().toISOString(),
-    };
-    setBankTransactions((prev) => [...(prev || []), newTransaction]);
-
-    // Update account balance with safe access
-    const account = (bankAccounts || []).find(
-      (acc) => acc.id === transactionData.accountId
-    );
-    if (account) {
-      const balanceChange =
-        transactionData.type === "deposit"
-          ? transactionData.amount
-          : -transactionData.amount;
-
-      updateBankAccount(account.id, {
-        balance: (account.balance || 0) + balanceChange,
-        currentBalance: (account.currentBalance || 0) + balanceChange,
-        availableBalance: (account.availableBalance || 0) + balanceChange,
+      setBankAccounts((prev) => {
+        const updatedAccounts = [...(prev || []), newAccount];
+        return updatedAccounts;
       });
-    }
 
-    return newTransaction;
-  };
+      logAudit("Bank Account Created", newAccount);
+      return newAccount;
+    },
+    [logAudit]
+  );
 
-  const reconcileTransaction = (transactionId) => {
-    setBankTransactions((prev) =>
-      (prev || []).map((transaction) =>
-        transaction.id === transactionId
-          ? { ...transaction, isReconciled: true }
-          : transaction
-      )
-    );
-  };
+  const updateBankAccount = useCallback(
+    (accountId, updates) => {
+      setBankAccounts((prev) =>
+        prev.map((account) =>
+          account.id === accountId
+            ? { ...account, ...updates, updatedAt: new Date().toISOString() }
+            : account
+        )
+      );
 
-  const reconcileAccount = (accountId) => {
-    setBankAccounts((prev) =>
-      (prev || []).map((account) =>
-        account.id === accountId
-          ? {
-              ...account,
-              isReconciled: true,
-              lastReconciled: new Date().toISOString().split("T")[0],
-            }
-          : account
-      )
-    );
-  };
+      logAudit("Bank Account Updated", { accountId, updates });
+    },
+    [logAudit]
+  );
 
-  const matchDepositToReceipt = (depositId, receiptId) => {
-    setBankDeposits((prev) =>
-      (prev || []).map((deposit) =>
-        deposit.id === depositId
-          ? {
-              ...deposit,
-              status: "matched",
-              matchedReceipts: [...(deposit.matchedReceipts || []), receiptId],
-            }
-          : deposit
-      )
-    );
-  };
+  const deleteBankAccount = useCallback(
+    (accountId) => {
+      setBankAccounts((prev) => {
+        const filteredAccounts = prev.filter(
+          (account) => account.id !== accountId
+        );
+        return filteredAccounts;
+      });
 
-  // Cash Flow Analysis with safe data access
+      logAudit("Bank Account Deleted", { accountId });
+    },
+    [logAudit]
+  );
+
+  const reconcileAccount = useCallback(
+    (accountId) => {
+      setBankAccounts((prev) =>
+        prev.map((account) =>
+          account.id === accountId
+            ? {
+                ...account,
+                isReconciled: true,
+                lastReconciled: new Date().toISOString().split("T")[0],
+                updatedAt: new Date().toISOString(),
+              }
+            : account
+        )
+      );
+
+      logAudit("Bank Account Reconciled", { accountId });
+    },
+    [logAudit]
+  );
+
+  const addBankTransaction = useCallback(
+    (transactionData) => {
+      const newTransaction = {
+        id: `bt${Date.now()}`,
+        ...transactionData,
+        status: "completed",
+        isReconciled: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      setBankTransactions((prev) => [...(prev || []), newTransaction]);
+
+      // Update account balance
+      const account = bankAccounts.find(
+        (acc) => acc.id === transactionData.accountId
+      );
+      if (account) {
+        const balanceChange =
+          transactionData.type === "deposit"
+            ? transactionData.amount
+            : -transactionData.amount;
+
+        updateBankAccount(account.id, {
+          balance: account.balance + balanceChange,
+          currentBalance: account.currentBalance + balanceChange,
+          availableBalance:
+            account.accountType === "credit"
+              ? account.availableBalance -
+                (transactionData.type === "withdrawal"
+                  ? transactionData.amount
+                  : 0)
+              : account.availableBalance + balanceChange,
+        });
+      }
+
+      // Post to GL
+      try {
+        if (transactionData.type === "deposit") {
+          postToGL(
+            transactionData.accountId,
+            transactionData.glAccount || "Sales",
+            transactionData.amount,
+            `Bank Deposit - ${transactionData.description}`,
+            `BT-${newTransaction.id}`
+          );
+        } else {
+          postToGL(
+            transactionData.glAccount || "Office Expenses",
+            transactionData.accountId,
+            transactionData.amount,
+            `Bank Withdrawal - ${transactionData.description}`,
+            `BT-${newTransaction.id}`
+          );
+        }
+      } catch (error) {
+        console.error("Error posting to GL:", error);
+      }
+
+      logAudit("Bank Transaction Added", newTransaction);
+      return newTransaction;
+    },
+    [bankAccounts, postToGL, updateBankAccount, logAudit]
+  );
+
+  const reconcileTransaction = useCallback(
+    (transactionId) => {
+      setBankTransactions((prev) =>
+        prev.map((transaction) =>
+          transaction.id === transactionId
+            ? { ...transaction, isReconciled: true }
+            : transaction
+        )
+      );
+
+      logAudit("Bank Transaction Reconciled", { transactionId });
+    },
+    [logAudit]
+  );
+
+  const matchDepositToReceipt = useCallback(
+    (depositId, receiptId) => {
+      setBankDeposits((prev) =>
+        prev.map((deposit) =>
+          deposit.id === depositId
+            ? {
+                ...deposit,
+                status: "matched",
+                matchedReceipts: [
+                  ...(deposit.matchedReceipts || []),
+                  receiptId,
+                ],
+              }
+            : deposit
+        )
+      );
+
+      setReceipts((prev) =>
+        prev.map((receipt) =>
+          receipt.id === receiptId ? { ...receipt, reconciled: true } : receipt
+        )
+      );
+
+      logAudit("Deposit Matched to Receipt", { depositId, receiptId });
+    },
+    [logAudit]
+  );
+
+  // Cash Flow Analysis
   const getCashFlowData = useCallback(
     (period = "month") => {
       const now = new Date();
@@ -789,7 +1436,6 @@ export const FinanceProvider = ({ children, sharedState }) => {
         startDate = new Date(now.getFullYear(), quarter * 3, 1);
         endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
       } else {
-        // year
         startDate = new Date(now.getFullYear(), 0, 1);
         endDate = new Date(now.getFullYear(), 11, 31);
       }
@@ -822,17 +1468,360 @@ export const FinanceProvider = ({ children, sharedState }) => {
     [bankTransactions]
   );
 
+  const getCashFlowAnalysis = useCallback(
+    (period = "month") => {
+      const now = new Date();
+      let startDate, endDate;
+
+      if (period === "month") {
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      } else if (period === "quarter") {
+        const quarter = Math.floor(now.getMonth() / 3);
+        startDate = new Date(now.getFullYear(), quarter * 3, 1);
+        endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
+      } else {
+        startDate = new Date(now.getFullYear(), 0, 1);
+        endDate = new Date(now.getFullYear(), 11, 31);
+      }
+
+      const periodTransactions = (bankTransactions || []).filter((t) => {
+        if (!t || !t.date) return false;
+        const transDate = new Date(t.date);
+        return transDate >= startDate && transDate <= endDate;
+      });
+
+      const incomeByCategory = {};
+      const expensesByCategory = {};
+
+      periodTransactions.forEach((transaction) => {
+        if (transaction.type === "deposit") {
+          incomeByCategory[transaction.category] =
+            (incomeByCategory[transaction.category] || 0) + transaction.amount;
+        } else {
+          expensesByCategory[transaction.category] =
+            (expensesByCategory[transaction.category] || 0) +
+            transaction.amount;
+        }
+      });
+
+      return {
+        income: periodTransactions
+          .filter((t) => t.type === "deposit")
+          .reduce((sum, t) => sum + (t.amount || 0), 0),
+        expenses: periodTransactions
+          .filter((t) => t.type === "withdrawal")
+          .reduce((sum, t) => sum + (t.amount || 0), 0),
+        incomeByCategory,
+        expensesByCategory,
+        transactions: periodTransactions.length,
+      };
+    },
+    [bankTransactions]
+  );
+
   // Get account by ID helper function
-  const getAccountById = (accountId) => {
-    return (bankAccounts || []).find((account) => account.id === accountId);
-  };
+  const getAccountById = useCallback(
+    (accountId) => {
+      return (bankAccounts || []).find((account) => account.id === accountId);
+    },
+    [bankAccounts]
+  );
 
   // Get transactions by account ID
-  const getTransactionsByAccountId = (accountId) => {
-    return (bankTransactions || []).filter(
-      (transaction) => transaction.accountId === accountId
-    );
-  };
+  const getTransactionsByAccountId = useCallback(
+    (accountId) => {
+      return (bankTransactions || []).filter(
+        (transaction) => transaction.accountId === accountId
+      );
+    },
+    [bankTransactions]
+  );
+
+  // Fixed Assets Functions
+  const addAsset = useCallback(
+    (assetData) => {
+      const newAsset = {
+        id: `fa${Date.now()}`,
+        ...assetData,
+        status: "active",
+        accumulatedDepreciation: 0,
+        netBookValue: assetData.cost,
+        currentValue: assetData.cost,
+        createdAt: new Date().toISOString(),
+        purchaseDate:
+          assetData.purchaseDate || new Date().toISOString().split("T")[0],
+      };
+
+      setAssets((prev) => [...(prev || []), newAsset]);
+
+      // Post to GL for asset acquisition
+      postToGL(
+        "Fixed Assets",
+        "Cash",
+        assetData.cost,
+        `Asset Acquisition - ${assetData.name}`
+      );
+
+      logAudit("Fixed Asset Added", newAsset);
+      return newAsset;
+    },
+    [postToGL, logAudit]
+  );
+
+  const updateAsset = useCallback(
+    (assetId, updates) => {
+      setAssets((prev) =>
+        (prev || []).map((asset) =>
+          asset.id === assetId
+            ? { ...asset, ...updates, updatedAt: new Date().toISOString() }
+            : asset
+        )
+      );
+
+      logAudit("Fixed Asset Updated", { assetId, updates });
+    },
+    [logAudit]
+  );
+
+  const deleteAsset = useCallback(
+    (assetId) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (
+        asset &&
+        window.confirm(`Are you sure you want to delete ${asset.name}?`)
+      ) {
+        setAssets((prev) => prev.filter((a) => a.id !== assetId));
+
+        // Post to GL for asset removal
+        postToGL(
+          "Accumulated Depreciation",
+          "Fixed Assets",
+          asset.netBookValue,
+          `Asset Deletion - ${asset.name}`
+        );
+
+        logAudit("Fixed Asset Deleted", asset);
+      }
+    },
+    [assets, postToGL, logAudit]
+  );
+
+  const disposeAsset = useCallback(
+    (assetId, disposalData) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (!asset) return;
+
+      const disposalRecord = {
+        id: `disp${Date.now()}`,
+        assetId,
+        assetName: asset.name,
+        disposalDate: disposalData.disposalDate,
+        disposalMethod: disposalData.method,
+        proceeds: disposalData.proceeds || 0,
+        netBookValue: asset.netBookValue,
+        gainLoss: (disposalData.proceeds || 0) - asset.netBookValue,
+        reason: disposalData.reason,
+        disposedBy: disposalData.disposedBy,
+        createdAt: new Date().toISOString(),
+      };
+
+      setAssets((prev) =>
+        prev.map((a) =>
+          a.id === assetId
+            ? {
+                ...a,
+                status: "disposed",
+                disposalDate: disposalData.disposalDate,
+                disposalValue: disposalData.proceeds || 0,
+              }
+            : a
+        )
+      );
+
+      setDisposalHistory((prev) => [...prev, disposalRecord]);
+
+      // Post to GL for asset disposal
+      if (disposalData.proceeds > 0) {
+        postToGL(
+          "Cash",
+          "Fixed Assets",
+          disposalData.proceeds,
+          `Asset Disposal - ${asset.name}`
+        );
+
+        const gainLoss = disposalData.proceeds - asset.netBookValue;
+        if (gainLoss > 0) {
+          postToGL(
+            "Gain on Disposal",
+            "Retained Earnings",
+            gainLoss,
+            `Gain on Asset Disposal - ${asset.name}`
+          );
+        } else if (gainLoss < 0) {
+          postToGL(
+            "Loss on Disposal",
+            "Retained Earnings",
+            Math.abs(gainLoss),
+            `Loss on Asset Disposal - ${asset.name}`
+          );
+        }
+      }
+
+      logAudit("Fixed Asset Disposed", { assetId, disposalData });
+    },
+    [assets, postToGL, logAudit]
+  );
+
+  const transferAsset = useCallback(
+    (assetId, transferData) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (!asset) return;
+
+      const transferRecord = {
+        id: `trans${Date.now()}`,
+        assetId,
+        assetName: asset.name,
+        fromLocation: asset.location,
+        toLocation: transferData.location,
+        fromDepartment: asset.department,
+        toDepartment: transferData.department,
+        transferDate: transferData.transferDate,
+        transferredBy: transferData.transferredBy,
+        reason: transferData.reason,
+        createdAt: new Date().toISOString(),
+      };
+
+      setAssets((prev) =>
+        prev.map((a) =>
+          a.id === assetId
+            ? {
+                ...a,
+                location: transferData.location,
+                department: transferData.department,
+                lastTransferDate: transferData.transferDate,
+              }
+            : a
+        )
+      );
+
+      setTransferHistory((prev) => [...prev, transferRecord]);
+      logAudit("Fixed Asset Transferred", { assetId, transferData });
+    },
+    [assets, logAudit]
+  );
+
+  const calculateDepreciation = useCallback(
+    (assetId, period = "monthly") => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (!asset || asset.status !== "active") return 0;
+
+      let annualDepreciation = 0;
+      const remainingValue = asset.cost - asset.accumulatedDepreciation;
+
+      switch (asset.depreciationMethod) {
+        case "straight-line":
+          annualDepreciation =
+            (asset.cost - (asset.salvageValue || 0)) / asset.usefulLife;
+          break;
+
+        case "declining-balance":
+          const rate = 1 / asset.usefulLife;
+          annualDepreciation = remainingValue * rate;
+          break;
+
+        case "double-declining":
+          const doubleRate = 2 / asset.usefulLife;
+          annualDepreciation = remainingValue * doubleRate;
+          break;
+
+        default:
+          annualDepreciation =
+            (asset.cost - (asset.salvageValue || 0)) / asset.usefulLife;
+      }
+
+      return period === "monthly"
+        ? annualDepreciation / 12
+        : annualDepreciation;
+    },
+    [assets]
+  );
+
+  const postMonthlyDepreciation = useCallback(() => {
+    const depreciationRecords = [];
+
+    assets.forEach((asset) => {
+      if (asset.status === "active") {
+        const monthlyDepreciation = calculateDepreciation(asset.id, "monthly");
+        if (monthlyDepreciation > 0) {
+          const newAccumulatedDepreciation =
+            asset.accumulatedDepreciation + monthlyDepreciation;
+          const newNetBookValue = asset.cost - newAccumulatedDepreciation;
+
+          // Update asset
+          updateAsset(asset.id, {
+            accumulatedDepreciation: newAccumulatedDepreciation,
+            netBookValue: newNetBookValue,
+          });
+
+          // Record depreciation entry
+          const depRecord = {
+            id: `dep${Date.now()}_${asset.id}`,
+            assetId: asset.id,
+            assetName: asset.name,
+            period: new Date().toISOString().slice(0, 7),
+            depreciationAmount: monthlyDepreciation,
+            accumulatedDepreciation: newAccumulatedDepreciation,
+            netBookValue: newNetBookValue,
+            postedAt: new Date().toISOString(),
+          };
+
+          depreciationRecords.push(depRecord);
+
+          // Post to GL
+          postToGL(
+            "Depreciation Expense",
+            "Accumulated Depreciation",
+            monthlyDepreciation,
+            `Monthly Depreciation - ${asset.name}`
+          );
+        }
+      }
+    });
+
+    setDepreciationHistory((prev) => [...prev, ...depreciationRecords]);
+    logAudit("Monthly Depreciation Posted", {
+      recordsCount: depreciationRecords.length,
+    });
+    return depreciationRecords;
+  }, [assets, calculateDepreciation, updateAsset, postToGL, logAudit]);
+
+  const getAssetDepreciationSchedule = useCallback(
+    (assetId) => {
+      const asset = assets.find((a) => a.id === assetId);
+      if (!asset) return [];
+
+      const schedule = [];
+      let accumulatedDepreciation = 0;
+      let netBookValue = asset.cost;
+
+      for (let year = 1; year <= asset.usefulLife; year++) {
+        const annualDepreciation = calculateDepreciation(asset.id, "annual");
+        accumulatedDepreciation += annualDepreciation;
+        netBookValue = asset.cost - accumulatedDepreciation;
+
+        schedule.push({
+          year,
+          annualDepreciation,
+          accumulatedDepreciation,
+          netBookValue,
+        });
+      }
+
+      return schedule;
+    },
+    [assets, calculateDepreciation]
+  );
 
   /* --------------------------- CONTEXT VALUE --------------------------- */
   const value = useMemo(
@@ -902,8 +1891,68 @@ export const FinanceProvider = ({ children, sharedState }) => {
       // Validation
       validateAccount,
       validateJournalEntry,
+
+      // Fixed Assets
+      assets: assets || [],
+      assetCategories: assetCategories || [],
+      depreciationMethods: depreciationMethods || [],
+      locations: locations || [],
+      departments: departments || [],
+      depreciationHistory: depreciationHistory || [],
+      transferHistory: transferHistory || [],
+      disposalHistory: disposalHistory || [],
+      addAsset,
+      updateAsset,
+      deleteAsset,
+      disposeAsset,
+      transferAsset,
+      calculateDepreciation,
+      postMonthlyDepreciation,
+      getAssetDepreciationSchedule,
+
+      // Bank & Cash Management
+      bankAccounts: bankAccounts || [],
+      bankTransactions: bankTransactions || [],
+      bankDeposits: bankDeposits || [],
+      cashFlowCategories: cashFlowCategories || [],
+      addBankAccount,
+      updateBankAccount,
+      deleteBankAccount,
+      reconcileAccount,
+      addBankTransaction,
+      reconcileTransaction,
+      matchDepositToReceipt,
+      getCashFlowData,
+      getCashFlowAnalysis,
+      getAccountById,
+      getTransactionsByAccountId,
+
+      // Finance Consolidation
+      entities,
+      intercompanyTransactions,
+      consolidationSettings,
+      consolidationHistory,
+      eliminationEntries,
+      addEntity,
+      updateEntity,
+      toggleEntityActive,
+      deleteEntity,
+      updateExchangeRate,
+      getConsolidatedBalanceSheet,
+      getConsolidatedProfitAndLoss,
+      getConsolidatedTrialBalance,
+      addIntercompanyTransaction,
+      reconcileIntercompanyTransaction,
+      markIntercompanyAsEliminated,
+      createEliminationEntry,
+      autoGenerateEliminationEntries,
+      runConsolidation,
+      getEntityPerformance,
+      updateConsolidationSettings,
+      convertCurrency,
     }),
     [
+      // Data
       chartOfAccounts,
       journalEntries,
       vendors,
@@ -916,50 +1965,103 @@ export const FinanceProvider = ({ children, sharedState }) => {
       fixedAssets,
       financeData,
       auditLogs,
+
+      // Shared
       sharedCustomers,
       setSharedCustomers,
+
+      // Account Management
       getAccount,
       createAccount,
       updateAccount,
       deleteAccount,
+
+      // Journal Entries
       createJournalEntry,
       updateJournalEntry,
       voidJournalEntry,
+
+      // Core Actions
       postToGL,
       getBalance,
       getAccountBalance,
       formatCurrency,
+
+      // Financial Reports
       getTrialBalance,
       getProfitAndLoss,
       getBalanceSheet,
+
+      // Helpers
       branches,
       allCostCenters,
       quickAccounts,
+
+      // Audit
       logAudit,
+
+      // Validation
       validateAccount,
       validateJournalEntry,
-      bankDeposits,
-      setBankDeposits,
-      receipts,
-      setReceipts,
-      arInvoices,
-      setArInvoices,
-      customers,
-      setCustomers,
-      // Bank & Cash Management data
+
+      // Fixed Assets
+      assets,
+      assetCategories,
+      depreciationMethods,
+      locations,
+      departments,
+      depreciationHistory,
+      transferHistory,
+      disposalHistory,
+      addAsset,
+      updateAsset,
+      deleteAsset,
+      disposeAsset,
+      transferAsset,
+      calculateDepreciation,
+      postMonthlyDepreciation,
+      getAssetDepreciationSchedule,
+
+      // Bank & Cash Management
       bankAccounts,
       bankTransactions,
+      bankDeposits,
       cashFlowCategories,
-
-      // Bank & Cash Management functions
       addBankAccount,
       updateBankAccount,
       deleteBankAccount,
+      reconcileAccount,
       addBankTransaction,
       reconcileTransaction,
-      reconcileAccount,
       matchDepositToReceipt,
       getCashFlowData,
+      getCashFlowAnalysis,
+      getAccountById,
+      getTransactionsByAccountId,
+
+      // Finance Consolidation
+      entities,
+      intercompanyTransactions,
+      consolidationSettings,
+      consolidationHistory,
+      eliminationEntries,
+      addEntity,
+      updateEntity,
+      toggleEntityActive,
+      deleteEntity,
+      updateExchangeRate,
+      getConsolidatedBalanceSheet,
+      getConsolidatedProfitAndLoss,
+      getConsolidatedTrialBalance,
+      addIntercompanyTransaction,
+      reconcileIntercompanyTransaction,
+      markIntercompanyAsEliminated,
+      createEliminationEntry,
+      autoGenerateEliminationEntries,
+      runConsolidation,
+      getEntityPerformance,
+      updateConsolidationSettings,
+      convertCurrency,
     ]
   );
 
@@ -1022,5 +2124,105 @@ export const useFinancialReports = () => {
     getTrialBalance,
     getProfitAndLoss,
     getBalanceSheet,
+  };
+};
+
+export const useBankAccounts = () => {
+  const {
+    bankAccounts,
+    addBankAccount,
+    updateBankAccount,
+    deleteBankAccount,
+    reconcileAccount,
+    getAccountById,
+    getTransactionsByAccountId,
+  } = useFinance();
+
+  return {
+    bankAccounts,
+    addBankAccount,
+    updateBankAccount,
+    deleteBankAccount,
+    reconcileAccount,
+    getAccountById,
+    getTransactionsByAccountId,
+  };
+};
+
+export const useFixedAssets = () => {
+  const {
+    assets,
+    addAsset,
+    updateAsset,
+    deleteAsset,
+    disposeAsset,
+    transferAsset,
+    calculateDepreciation,
+    postMonthlyDepreciation,
+    getAssetDepreciationSchedule,
+  } = useFinance();
+
+  return {
+    assets,
+    addAsset,
+    updateAsset,
+    deleteAsset,
+    disposeAsset,
+    transferAsset,
+    calculateDepreciation,
+    postMonthlyDepreciation,
+    getAssetDepreciationSchedule,
+  };
+};
+
+export const useConsolidation = () => {
+  const {
+    entities,
+    intercompanyTransactions,
+    consolidationSettings,
+    consolidationHistory,
+    eliminationEntries,
+    addEntity,
+    updateEntity,
+    toggleEntityActive,
+    deleteEntity,
+    updateExchangeRate,
+    getConsolidatedBalanceSheet,
+    getConsolidatedProfitAndLoss,
+    getConsolidatedTrialBalance,
+    addIntercompanyTransaction,
+    reconcileIntercompanyTransaction,
+    markIntercompanyAsEliminated,
+    createEliminationEntry,
+    autoGenerateEliminationEntries,
+    runConsolidation,
+    getEntityPerformance,
+    updateConsolidationSettings,
+    convertCurrency,
+  } = useFinance();
+
+  return {
+    entities,
+    intercompanyTransactions,
+    consolidationSettings,
+    consolidationHistory,
+    eliminationEntries,
+    addEntity,
+    updateEntity,
+    toggleEntityActive,
+    deleteEntity,
+    updateExchangeRate,
+    getConsolidatedBalanceSheet,
+    getConsolidatedProfitAndLoss,
+    getConsolidatedTrialBalance,
+    addIntercompanyTransaction,
+    reconcileIntercompanyTransaction,
+    markIntercompanyAsEliminated,
+    createEliminationEntry,
+    autoGenerateEliminationEntries,
+    runConsolidation,
+    getEntityPerformance,
+    updateConsolidationSettings,
+    convertCurrency,
   };
 };

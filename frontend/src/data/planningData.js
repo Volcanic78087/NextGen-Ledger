@@ -1,17 +1,3 @@
-// src/data/planningData.js
-// ===================================================
-// CENTRAL DATA FILE – Clean, Commented, Production-Ready
-// ===================================================
-// All sample data used across modules:
-//   • Planning & Scheduling
-//   • BOM Management
-//   • Work Orders
-//   • Shop Floor Execution
-// ===================================================
-
-/**
- * Planning Menu (Sidebar)
- */
 export const planningMenu = [
   {
     title: "Master Data",

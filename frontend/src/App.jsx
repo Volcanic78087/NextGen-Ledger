@@ -55,10 +55,10 @@ import InventoryDashboard from "./pages/Inventory/Dashboard";
 import StockManagement from "./pages/Inventory/StockManagement";
 import StockTransactions from "./pages/Inventory/StockTransactions";
 import PurchaseManagement from "./pages/Inventory/PurchaseManagement";
-import WarehouseBins from "./pages/Inventory/Warehouse";
 import Products from "./pages/Inventory/Products";
 import Suppliers from "./pages/Inventory/Suppliers";
 import Reports from "./pages/Inventory/Reports";
+import WarehouseManagement from "./pages/Inventory/Warehouse";
 
 import BudgetsForecasting from "./pages/Finance/BudgetsForecasting";
 import CostAccounting from "./pages/Finance/CostAccounting";
@@ -77,7 +77,7 @@ import { InspectionPlan } from "./pages/QualityManagement/InspectionPlan";
 import { NonConformanceManagement } from "./pages/QualityManagement/NCM";
 import { QualityCertificate } from "./pages/QualityManagement/QualityCertificate";
 import SalesDashboard from "./pages/Sales/SalesDashboard";
-import WarehouseManagement from "./pages/Logistics/WarehouseMangement";
+// import WarehouseManagement from "./pages/Logistics/WarehouseMangement";
 import PlanningAndScheduling from "./pages/Production/PlanningAndScheduling";
 
 import BOMManagement from "./pages/Production/BOM";
@@ -109,6 +109,9 @@ import ATP from "./pages/Sales/ATP";
 import OutputDetermination from "./pages/Sales/OutputDetermination";
 import CreditManagement from "./pages/Sales/CreditManagement";
 import BankAccounts from "./pages/Finance/BankAccounts";
+import Consolidation from "./pages/Finance/Consolidation";
+import SalesIntegrationView from "./pages/Inventory/SalesIntegrationView";
+import QualityIntegrationView from "./pages/Inventory/QualityIntegrationView";
 
 /* ------------------------------------------------------------------ */
 /* Layout (Navbar + Sidebar + Main) */
@@ -201,7 +204,7 @@ const AppRoutes = () => {
                     element={
                       <ProtectedRoute>
                         <InventoryProvider>
-                          <WarehouseBins />
+                          <WarehouseManagement />
                         </InventoryProvider>
                       </ProtectedRoute>
                     }
@@ -232,6 +235,26 @@ const AppRoutes = () => {
                       <ProtectedRoute>
                         <InventoryProvider>
                           <Reports />
+                        </InventoryProvider>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventory/quality"
+                    element={
+                      <ProtectedRoute>
+                        <InventoryProvider>
+                          <QualityIntegrationView />
+                        </InventoryProvider>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/inventory/sales"
+                    element={
+                      <ProtectedRoute>
+                        <InventoryProvider>
+                          <SalesIntegrationView />
                         </InventoryProvider>
                       </ProtectedRoute>
                     }
@@ -588,6 +611,16 @@ const AppRoutes = () => {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/finance/consolidation"
+                    element={
+                      <ProtectedRoute>
+                        <FinanceProvider>
+                          <Consolidation />
+                        </FinanceProvider>
+                      </ProtectedRoute>
+                    }
+                  />
 
                   {/* Quality Management */}
                   <Route
@@ -652,14 +685,14 @@ const AppRoutes = () => {
                   />
 
                   {/* Logistics */}
-                  <Route
+                  {/* <Route
                     path="/logistics/warehouse"
                     element={
                       <ProtectedRoute>
                         <WarehouseManagement />
                       </ProtectedRoute>
                     }
-                  />
+                  /> */}
 
                   {/* Production */}
                   <Route

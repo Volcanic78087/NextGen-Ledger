@@ -1,9 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { sampleData } from "../data/data";
+import { sampleData } from "../data/crmData";
 
-/* -------------------------------------------------------------------------- */
-/*                          CRM & LOYALTY CONTEXT                             */
-/* -------------------------------------------------------------------------- */
 const CrmContext = createContext();
 
 export const CrmProvider = ({ children, sharedState }) => {
@@ -15,8 +12,7 @@ export const CrmProvider = ({ children, sharedState }) => {
     logAudit,
   } = sharedState || {};
   const { postToGL: sharedPostToGL } = sharedState || {};
-
-  /* --------------------------- LOCAL STORAGE HELPERS --------------------------- */
+  // LOCAL STORAGE HELPERS
   const load = (key, fallback) => {
     const saved = localStorage.getItem(key);
     return saved ? JSON.parse(saved) : fallback;

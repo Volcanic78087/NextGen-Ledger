@@ -7,9 +7,9 @@ const roleLabel = (role) => {
     case 1:
       return "Super Admin";
     case 2:
-      return "User";
+      return "Admin";
     default:
-      return "Guest";
+      return "User";
   }
 };
 

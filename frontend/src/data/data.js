@@ -1,694 +1,584 @@
-// data.js
-// Sample mock data for development. In production, replace with API fetches.
-// This includes shared data like chart of accounts, vendors, invoices, etc.
-// Can be imported in components and context.
+// src/data/data.js
+
+// Sample Chart of Accounts
 export const sampleChartOfAccounts = [
   {
-    id: "1", // ← STRING
-    code: "CASH",
+    id: "acc-1",
+    code: "1001",
     name: "Cash",
     type: "Asset",
-    opening: 50000,
+    subtype: "Current Asset",
+    balance: 150000,
+    opening: 100000,
+    isActive: true,
+    currency: "INR",
   },
   {
-    id: "2", // ← STRING
-    code: "BANK",
-    name: "Bank",
-    type: "Asset",
-    opening: 100000,
+    id: "acc-2",
+    code: "1002",
+    name: "Bank Account",
+    type: "Bank",
+    subtype: "Current Asset",
+    balance: 500000,
+    opening: 400000,
+    isActive: true,
+    currency: "INR",
   },
-  // ...
+  {
+    id: "acc-3",
+    code: "2001",
+    name: "Accounts Payable",
+    type: "Liability",
+    subtype: "Current Liability",
+    balance: 200000,
+    opening: 150000,
+    isActive: true,
+    currency: "INR",
+  },
+  {
+    id: "acc-4",
+    code: "3001",
+    name: "Sales",
+    type: "Income",
+    subtype: "Revenue",
+    balance: 0,
+    opening: 0,
+    isActive: true,
+    currency: "INR",
+  },
+  {
+    id: "acc-5",
+    code: "4001",
+    name: "Office Expenses",
+    type: "Expense",
+    subtype: "Operating Expense",
+    balance: 0,
+    opening: 0,
+    isActive: true,
+    currency: "INR",
+  },
+  {
+    id: "acc-6",
+    code: "5001",
+    name: "Fixed Assets",
+    type: "Asset",
+    subtype: "Fixed Asset",
+    balance: 1000000,
+    opening: 1000000,
+    isActive: true,
+    currency: "INR",
+  },
+  {
+    id: "acc-7",
+    code: "6001",
+    name: "Accounts Receivable",
+    type: "Asset",
+    subtype: "Current Asset",
+    balance: 300000,
+    opening: 250000,
+    isActive: true,
+    currency: "INR",
+  },
 ];
 
+// Sample Vendors
 export const sampleVendors = [
-  { id: 1, name: "Vendor A", contact: "vendorA@example.com", balance: 0 },
-  { id: 2, name: "Vendor B", contact: "vendorB@example.com", balance: 0 },
+  {
+    id: "ven-1",
+    name: "ABC Suppliers",
+    email: "contact@abcsuppliers.com",
+    phone: "+91-9876543210",
+    address: "Mumbai, India",
+    taxId: "GSTIN123456789",
+    paymentTerms: "Net 30",
+    balance: 150000,
+    isActive: true,
+  },
+  {
+    id: "ven-2",
+    name: "XYZ Corporation",
+    email: "accounts@xyzcorp.com",
+    phone: "+91-9876543211",
+    address: "Delhi, India",
+    taxId: "GSTIN123456790",
+    paymentTerms: "Net 45",
+    balance: 75000,
+    isActive: true,
+  },
 ];
 
+// Sample Invoices
 export const sampleInvoices = [
   {
-    id: 1,
-    vendorId: 1,
-    amount: 1000,
-    date: "2025-11-01",
-    status: "Pending",
-    description: "Purchase Invoice",
-  },
-  // Invoices will update GL when posted
-];
-
-export const sampleJournalEntries = []; // Shared with GL, will be updated from AP, AR, etc.
-
-// src/data/apData.js
-export const defaultVendors = [
-  {
-    id: "v1",
-    name: "Acme Supplies Inc.",
-    code: "ACME001",
-    email: "ap@acme.com",
-    phone: "(555) 123-4567",
-    address: "123 Industrial Rd",
-    taxId: "12-3456789",
-    paymentTerms: 30,
-    category: "Office Supplies",
-  },
-  {
-    id: "v2",
-    name: "TechGear Ltd.",
-    code: "TECH002",
-    email: "billing@techgear.com",
-    phone: "(555) 987-6543",
-    address: "456 Silicon Ave",
-    taxId: "98-7654321",
-    paymentTerms: 15,
-    category: "IT Hardware",
-  },
-];
-
-export const defaultInvoices = [
-  {
-    id: "i1",
-    vendorId: "v1",
-    invoiceNo: "INV-2025-00123",
-    poNo: "PO-2025-0456",
-    issueDate: "2025-10-15",
-    dueDate: "2025-11-14",
-    total: 2450.0,
-    balance: 2450.0,
-    status: "open",
-    approval: "pending",
-    file: null,
-  },
-  {
-    id: "i2",
-    vendorId: "v2",
-    invoiceNo: "INV-2025-00987",
-    issueDate: "2025-10-20",
-    dueDate: "2025-11-04",
-    total: 18750.0,
-    balance: 7500.0,
-    status: "partial",
-    approval: "approved",
-    file: null,
-  },
-  {
-    id: "i3",
-    vendorId: "v1",
-    invoiceNo: "INV-2025-00156",
-    issueDate: "2025-09-01",
-    dueDate: "2025-09-30",
-    total: 890.0,
-    balance: 0,
+    id: "inv-1",
+    vendorId: "ven-1",
+    invoiceNumber: "INV-001",
+    date: "2024-01-15",
+    dueDate: "2024-02-14",
+    amount: 50000,
+    tax: 9000,
+    total: 59000,
     status: "paid",
-    approval: "approved",
-    file: null,
+    items: [
+      {
+        description: "Office Supplies",
+        quantity: 100,
+        rate: 500,
+        amount: 50000,
+      },
+    ],
+  },
+  {
+    id: "inv-2",
+    vendorId: "ven-2",
+    invoiceNumber: "INV-002",
+    date: "2024-01-20",
+    dueDate: "2024-03-05",
+    amount: 30000,
+    tax: 5400,
+    total: 35400,
+    status: "pending",
+    items: [
+      { description: "IT Equipment", quantity: 5, rate: 6000, amount: 30000 },
+    ],
   },
 ];
 
+// Sample Journal Entries
+export const sampleJournalEntries = [
+  {
+    id: "je-1",
+    date: "2024-01-01",
+    ref: "OPENING",
+    desc: "Opening Balance Entry",
+    status: "posted",
+    lines: [
+      {
+        accountId: "acc-1",
+        debit: 100000,
+        credit: 0,
+        description: "Cash Opening",
+      },
+      {
+        accountId: "acc-2",
+        debit: 400000,
+        credit: 0,
+        description: "Bank Opening",
+      },
+      {
+        accountId: "acc-6",
+        debit: 1000000,
+        credit: 0,
+        description: "Fixed Assets Opening",
+      },
+      {
+        accountId: "acc-3",
+        debit: 0,
+        credit: 150000,
+        description: "AP Opening",
+      },
+      {
+        accountId: "acc-7",
+        debit: 250000,
+        credit: 0,
+        description: "AR Opening",
+      },
+    ],
+  },
+  {
+    id: "je-2",
+    date: "2024-01-15",
+    ref: "SALES-001",
+    desc: "Sales Revenue",
+    status: "posted",
+    lines: [
+      {
+        accountId: "acc-1",
+        debit: 59000,
+        credit: 0,
+        description: "Cash Sales",
+      },
+      {
+        accountId: "acc-4",
+        debit: 0,
+        credit: 50000,
+        description: "Sales Revenue",
+      },
+      {
+        accountId: "acc-3",
+        debit: 0,
+        credit: 9000,
+        description: "Tax Payable",
+      },
+    ],
+  },
+];
+
+// Default Payments
 export const defaultPayments = [
   {
-    id: "p1",
-    invoiceIds: ["i2"],
-    vendorId: "v2",
-    amount: 11250.0,
-    date: "2025-10-25",
-    method: "ACH",
-    reference: "ACH-20251025-001",
-    status: "cleared",
-    reconciled: true,
+    id: "pay-1",
+    invoiceId: "inv-1",
+    amount: 59000,
+    date: "2024-01-30",
+    method: "bank_transfer",
+    reference: "PYMT-001",
+    status: "completed",
   },
 ];
 
-export const defaultBankTransactions = [
-  {
-    id: "b1",
-    date: "2025-10-25",
-    description: "ACH Payment - TechGear",
-    amount: -11250.0,
-    matched: true,
-  },
-  {
-    id: "b2",
-    date: "2025-10-28",
-    description: "Check #1001",
-    amount: -2450.0,
-    matched: false,
-  },
-];
-
-// src/data/arData.js
+// Default Customers
 export const defaultCustomers = [
   {
-    id: "c1",
-    name: "Global Retail Corp",
-    code: "CUST001",
-    email: "ar@globalretail.com",
-    phone: "(555) 555-0101",
-    address: "789 Commerce Blvd",
-    taxId: "11-2223334",
-    creditLimit: 50000,
-    paymentTerms: 30,
-    category: "Retail",
+    id: "cust-1",
+    name: "Global Enterprises",
+    email: "accounts@globalent.com",
+    phone: "+91-9876543212",
+    address: "Bangalore, India",
+    taxId: "GSTIN123456791",
+    creditLimit: 500000,
+    currentBalance: 150000,
+    isActive: true,
   },
   {
-    id: "c2",
-    name: "TechStart Inc.",
-    code: "CUST002",
-    email: "billing@techstart.com",
-    phone: "(555) 555-0202",
-    address: "101 Innovation Dr",
-    taxId: "22-3334445",
-    creditLimit: 25000,
-    paymentTerms: 15,
-    category: "Tech Startup",
+    id: "cust-2",
+    name: "Tech Solutions Ltd",
+    email: "billing@techsolutions.com",
+    phone: "+91-9876543213",
+    address: "Hyderabad, India",
+    taxId: "GSTIN123456792",
+    creditLimit: 300000,
+    currentBalance: 75000,
+    isActive: true,
   },
 ];
 
+// Default AR Invoices
 export const defaultArInvoices = [
   {
-    id: "ari1",
-    customerId: "c1",
-    invoiceNo: "AR-2025-00089",
-    soNo: "SO-2025-1234",
-    issueDate: "2025-10-01",
-    dueDate: "2025-10-31",
-    total: 12500.0,
-    balance: 12500.0,
-    status: "open",
-    approval: "sent",
-    file: null,
-  },
-  {
-    id: "ari2",
-    customerId: "c2",
-    invoiceNo: "AR-2025-00123",
-    issueDate: "2025-10-15",
-    dueDate: "2025-10-30",
-    total: 8750.0,
-    balance: 4375.0,
-    status: "partial",
-    approval: "sent",
-    file: null,
-  },
-  {
-    id: "ari3",
-    customerId: "c1",
-    invoiceNo: "AR-2025-00056",
-    issueDate: "2025-09-01",
-    dueDate: "2025-09-30",
-    total: 5600.0,
-    balance: 0,
-    status: "paid",
-    approval: "sent",
-    file: null,
+    id: "arinv-1",
+    customerId: "cust-1",
+    invoiceNumber: "AR-INV-001",
+    date: "2024-01-10",
+    dueDate: "2024-02-09",
+    amount: 150000,
+    tax: 27000,
+    total: 177000,
+    status: "pending",
+    items: [
+      {
+        description: "Consulting Services",
+        quantity: 100,
+        rate: 1500,
+        amount: 150000,
+      },
+    ],
   },
 ];
 
+// Default Receipts
 export const defaultReceipts = [
   {
-    id: "r1",
-    invoiceIds: ["ari2"],
-    customerId: "c2",
-    amount: 4375.0,
-    date: "2025-10-20",
-    method: "Wire",
-    reference: "WIRE-20251020-001",
-    status: "applied",
-    reconciled: true,
+    id: "rcpt-1",
+    customerId: "cust-2",
+    amount: 75000,
+    date: "2024-01-25",
+    method: "cheque",
+    reference: "RCPT-001",
+    invoiceIds: [],
+    status: "completed",
   },
 ];
 
-export const defaultBankDeposits = [
-  {
-    id: "d1",
-    date: "2025-10-20",
-    description: "Wire Receipt - TechStart",
-    amount: 4375.0,
-    matched: true,
-  },
-  {
-    id: "d2",
-    date: "2025-10-25",
-    description: "Check Deposit",
-    amount: 12500.0,
-    matched: false,
-  },
-];
-
+// Default Budgets
 export const defaultBudgets = [
-  { department: "Production", allocated: 500000, spent: 320000 },
-  { department: "Sales", allocated: 400000, spent: 390000 },
+  {
+    id: "budget-1",
+    name: "Q1 2024 Operating Budget",
+    period: "quarterly",
+    startDate: "2024-01-01",
+    endDate: "2024-03-31",
+    accounts: [
+      { accountId: "acc-5", allocated: 200000, spent: 50000 },
+      { accountId: "acc-4", target: 1000000, achieved: 250000 },
+    ],
+    status: "active",
+  },
 ];
 
-export const defaultForecasts = [
-  { month: "Nov", revenue: 800000, expense: 500000 },
-  { month: "Dec", revenue: 850000, expense: 520000 },
-];
-
+// Default Cost Centers
 export const defaultCostCenters = [
-  { id: 1, name: "Manufacturing", cost: 250000 },
-  { id: 2, name: "Marketing", cost: 100000 },
+  { id: "cc-1", name: "Sales & Marketing", code: "SM", isActive: true },
+  { id: "cc-2", name: "Research & Development", code: "RD", isActive: true },
+  { id: "cc-3", name: "Administration", code: "ADMIN", isActive: true },
+  { id: "cc-4", name: "Operations", code: "OPS", isActive: true },
 ];
 
-export const defaultFixedAssets = [
-  { id: 1, name: "Office Building", value: 2000000, depreciationRate: 5 },
-  { id: 2, name: "Machinery", value: 1200000, depreciationRate: 10 },
-];
-
-export const initialBudgets = [
-  { id: 1, department: "Sales", year: 2025, allocated: 500000, spent: 420000 },
-  {
-    id: 2,
-    department: "Marketing",
-    year: 2025,
-    allocated: 300000,
-    spent: 250000,
-  },
-  { id: 3, department: "HR", year: 2025, allocated: 150000, spent: 140000 },
-];
-
-export const initialCostCenters = [
-  {
-    id: "CC001",
-    name: "Production",
-    department: "Manufacturing",
-    manager: "John Smith",
-    budget: 150000,
-  },
-  {
-    id: "CC002",
-    name: "Marketing",
-    department: "Sales",
-    manager: "Jane Doe",
-    budget: 80000,
-  },
-];
-
-export const initialAssets = [
-  {
-    id: "FA001",
-    name: "CNC Machine",
-    purchaseDate: "2023-05-10",
-    cost: 1000000,
-    depreciation: 10,
-  },
-  {
-    id: "FA002",
-    name: "Office Furniture",
-    purchaseDate: "2024-03-20",
-    cost: 200000,
-    depreciation: 15,
-  },
-];
+// Initial Finance Data
 export const initialFinanceData = {
-  vendors: [
-    { id: 1, name: "ABC Supplies", due: 250000, paid: 180000 },
-    { id: 2, name: "Global Parts", due: 150000, paid: 100000 },
-    { id: 3, name: "Metro Tech", due: 200000, paid: 175000 },
-  ],
-
-  customers: [
-    { id: 1, name: "Delta Traders", limit: 200000, used: 180000 },
-    { id: 2, name: "Northline Co.", limit: 300000, used: 120000 },
-    { id: 3, name: "Prime Distributors", limit: 250000, used: 240000 },
-  ],
-
-  cashFlow: [
-    { month: "Jan", inflow: 500000, outflow: 420000 },
-    { month: "Feb", inflow: 480000, outflow: 390000 },
-    { month: "Mar", inflow: 520000, outflow: 470000 },
-    { month: "Apr", inflow: 560000, outflow: 490000 },
-  ],
-
-  kpis: [
-    { name: "DSO", value: 45 },
-    { name: "DPO", value: 38 },
-    { name: "Working Capital Ratio", value: 1.25 },
-    { name: "Liquidity Coverage", value: 0.9 },
-  ],
-
-  budgets: [
-    { department: "Production", budget: 800000, actual: 750000 },
-    { department: "Sales", budget: 500000, actual: 530000 },
-    { department: "HR", budget: 300000, actual: 280000 },
-  ],
-
-  costCenters: [
-    { name: "Manufacturing", cost: 400000 },
-    { name: "Logistics", cost: 200000 },
-    { name: "Marketing", cost: 250000 },
-  ],
+  companyName: "Your Company",
+  fiscalYearStart: "2024-01-01",
+  fiscalYearEnd: "2024-12-31",
+  baseCurrency: "INR",
+  taxRate: 18,
+  defaultPaymentTerms: 30,
 };
 
-// src/data/data.js
-export const sampleData = {
-  customers: [
-    {
-      id: "c1",
-      name: "Rahul Sharma",
-      email: "rahul@xyz.com",
-      phone: "+919876543210",
-    },
-    {
-      id: "c2",
-      name: "Priya Mehta",
-      email: "priya@abc.com",
-      phone: "+918765432109",
-    },
-    {
-      id: "c3",
-      name: "Amit Kumar",
-      email: "amit@def.com",
-      phone: "+917654321098",
-    },
-  ],
-
-  loyaltyPrograms: [
-    {
-      id: "p1",
-      name: "Gold Tier",
-      description: "Earn 1 point per ₹100 spent",
-      start_date: "2025-01-01",
-      end_date: "2025-12-31",
-      is_active: true,
-    },
-    {
-      id: "p2",
-      name: "Welcome Bonus",
-      description: "100 points on first purchase",
-      start_date: "2025-01-01",
-      end_date: null,
-      is_active: true,
-    },
-  ],
-
-  loyaltyRules: [
-    {
-      id: "r1",
-      program_id: "p1",
-      trigger_type: "SALE",
-      trigger_ref_table: "sales",
-      condition_json: { min_amount: 1000 },
-      points_awarded: 10,
-    },
-    {
-      id: "r2",
-      program_id: "p1",
-      trigger_type: "LEAD_CONVERTED",
-      trigger_ref_table: "leads",
-      condition_json: {},
-      points_awarded: 50,
-    },
-    {
-      id: "r3",
-      program_id: "p1",
-      trigger_type: "TICKET_CLOSED",
-      trigger_ref_table: "support_tickets",
-      condition_json: {},
-      points_awarded: 20,
-    },
-  ],
-
-  loyaltyLedger: [
-    { id: "l1", customer_id: "c1", program_id: "p1", points: 320 },
-    { id: "l2", customer_id: "c2", program_id: "p1", points: 180 },
-    { id: "l3", customer_id: "c3", program_id: "p1", points: 90 },
-  ],
-
-  loyaltyTransactions: [
-    {
-      id: "t1",
-      ledger_id: "l1",
-      type: "EARN",
-      points: 100,
-      reference_id: "s1",
-      notes: "Sale #1001",
-      created_at: "2025-03-15T10:30:00Z",
-    },
-    {
-      id: "t2",
-      ledger_id: "l1",
-      type: "EARN",
-      points: 50,
-      reference_id: "l1",
-      notes: "Lead converted",
-      created_at: "2025-03-16T14:20:00Z",
-    },
-    {
-      id: "t3",
-      ledger_id: "l1",
-      type: "REDEEM",
-      points: -30,
-      reference_id: "red1",
-      notes: "Gift Card",
-      created_at: "2025-03-20T09:15:00Z",
-    },
-  ],
-
-  loyaltyRedemptions: [
-    {
-      id: "red1",
-      program_id: "p1",
-      title: "₹500 Gift Card",
-      description: "Valid at partner stores",
-      points_cost: 30,
-      max_per_user: 2,
-      is_active: true,
-    },
-    {
-      id: "red2",
-      program_id: "p1",
-      title: "Free Coffee",
-      description: "At Cafe X",
-      points_cost: 15,
-      max_per_user: 5,
-      is_active: true,
-    },
-  ],
-};
-
-// src/data/qualityData.js
-export const qualityData = {
-  suppliers: [
-    {
-      id: 1,
-      name: "ABC Steel Suppliers",
-      location: "Delhi",
-      rating: 4.2,
-      contact: "abc@steel.com",
-    },
-    {
-      id: 2,
-      name: "XYZ Electronics Pvt Ltd",
-      location: "Mumbai",
-      rating: 3.8,
-      contact: "xyz@elec.com",
-    },
-    {
-      id: 3,
-      name: "Global Fabrics Co",
-      location: "Bangalore",
-      rating: 4.5,
-      contact: "global@fabrics.com",
-    },
-  ],
-  defects: [
-    { id: 1, name: "Crack/Damage", category: "Visual", severity: "High" },
-    {
-      id: 2,
-      name: "Dimension Out of Tolerance",
-      category: "Measurement",
-      severity: "Medium",
-    },
-    { id: 3, name: "Color Variation", category: "Visual", severity: "Low" },
-    { id: 4, name: "Contamination", category: "Functional", severity: "High" },
-  ],
-  inspections: [
-    {
-      id: 101,
-      batchNo: "BATCH-2025-001",
-      supplierId: 1,
-      date: "2025-11-01",
-      item: "Steel Rods",
-      quantityReceived: 1000,
-      sampleSize: 50,
-      defectsFound: 2,
-      defectIds: [1, 2], // References defects array
-      status: "Pass",
-      notes: "Minor cracks fixed by supplier.",
-      inspectedBy: "Super Admin",
-    },
-    {
-      id: 102,
-      batchNo: "BATCH-2025-002",
-      supplierId: 2,
-      date: "2025-11-03",
-      item: "Circuit Boards",
-      quantityReceived: 500,
-      sampleSize: 32,
-      defectsFound: 15,
-      defectIds: [2, 4],
-      status: "Fail",
-      notes: "High contamination, batch rejected.",
-      inspectedBy: "User",
-    },
-    {
-      id: 103,
-      batchNo: "BATCH-2025-003",
-      supplierId: 3,
-      date: "2025-11-04",
-      item: "Cotton Fabric",
-      quantityReceived: 2000,
-      sampleSize: 80,
-      defectsFound: 0,
-      defectIds: [],
-      status: "Pass",
-      notes: "Perfect quality, no issues.",
-      inspectedBy: "Super Admin",
-    },
-  ],
-};
-
-// src/data/bankData.js
+// Bank & Cash Management Sample Data
 export const initialBankAccounts = [
   {
-    id: "ba1",
-    name: "Primary Business Account",
-    bankName: "Chase Bank",
-    accountNumber: "****4832",
+    id: "ba-1",
+    name: "HDFC Current Account",
+    bankName: "HDFC Bank",
+    accountNumber: "123456789012",
     accountType: "checking",
-    balance: 125430.75,
-    currency: "USD",
+    balance: 500000,
+    currency: "INR",
     status: "active",
-    openingDate: "2023-01-15",
+    openingDate: "2023-01-01",
     creditLimit: 0,
-    currentBalance: 125430.75,
-    availableBalance: 125430.75,
-    routingNumber: "021000021",
+    currentBalance: 500000,
+    availableBalance: 500000,
     isReconciled: true,
-    lastReconciled: "2024-01-15",
+    branch: "Mumbai Main",
   },
   {
-    id: "ba2",
-    name: "Savings Account",
-    bankName: "Bank of America",
-    accountNumber: "****6712",
+    id: "ba-2",
+    name: "SBI Savings Account",
+    bankName: "State Bank of India",
+    accountNumber: "987654321098",
     accountType: "savings",
-    balance: 75000.0,
-    currency: "USD",
+    balance: 250000,
+    currency: "INR",
     status: "active",
-    openingDate: "2023-02-20",
+    openingDate: "2023-01-01",
     creditLimit: 0,
-    currentBalance: 75000.0,
-    availableBalance: 75000.0,
-    routingNumber: "053000196",
-    isReconciled: true,
-    lastReconciled: "2024-01-10",
-  },
-  {
-    id: "ba3",
-    name: "Business Credit Card",
-    bankName: "American Express",
-    accountNumber: "****1895",
-    accountType: "credit",
-    balance: -2450.5,
-    currency: "USD",
-    status: "active",
-    openingDate: "2023-03-10",
-    creditLimit: 25000,
-    currentBalance: 2450.5,
-    availableBalance: 22549.5,
-    routingNumber: "N/A",
+    currentBalance: 250000,
+    availableBalance: 250000,
     isReconciled: false,
-    lastReconciled: null,
+    branch: "Delhi Branch",
   },
 ];
 
 export const initialBankTransactions = [
   {
-    id: "t1",
-    accountId: "ba1",
-    date: "2024-01-15",
-    description: "Client Payment - ABC Corp",
-    reference: "INV-2024-001",
+    id: "bt-1",
+    accountId: "ba-1",
     type: "deposit",
-    amount: 15000.0,
+    amount: 100000,
+    date: "2024-01-15",
+    description: "Customer Payment - INV-001",
+    reference: "PYMT-001",
     category: "revenue",
     status: "completed",
-    balanceAfter: 125430.75,
     isReconciled: true,
+    balanceAfter: 600000,
   },
   {
-    id: "t2",
-    accountId: "ba1",
-    date: "2024-01-14",
-    description: "Office Rent",
-    reference: "RENT-0124",
+    id: "bt-2",
+    accountId: "ba-1",
     type: "withdrawal",
-    amount: 3500.0,
+    amount: 50000,
+    date: "2024-01-20",
+    description: "Vendor Payment - ABC Suppliers",
+    reference: "VP-001",
     category: "expense",
     status: "completed",
-    balanceAfter: 110430.75,
-    isReconciled: true,
-  },
-  {
-    id: "t3",
-    accountId: "ba3",
-    date: "2024-01-13",
-    description: "Software Subscription",
-    reference: "SUB-001",
-    type: "withdrawal",
-    amount: 299.0,
-    category: "expense",
-    status: "pending",
-    balanceAfter: 2450.5,
     isReconciled: false,
-  },
-  {
-    id: "t4",
-    accountId: "ba2",
-    date: "2024-01-12",
-    description: "Interest Earned",
-    reference: "INT-0124",
-    type: "deposit",
-    amount: 125.5,
-    category: "interest",
-    status: "completed",
-    balanceAfter: 75000.0,
-    isReconciled: true,
+    balanceAfter: 550000,
   },
 ];
 
 export const initialBankDeposits = [
   {
-    id: "bd1",
+    id: "dep-1",
+    accountId: "ba-1",
+    amount: 100000,
     date: "2024-01-15",
-    amount: 15000.0,
-    description: "Customer Payments Batch",
-    reference: "DEP-2024-001",
+    description: "Customer Payment Batch",
+    reference: "DEP-001",
     status: "matched",
-    matchedReceipts: ["r1", "r2"],
-    accountId: "ba1",
-  },
-  {
-    id: "bd2",
-    date: "2024-01-10",
-    amount: 8500.0,
-    description: "Client Advance Payment",
-    reference: "DEP-2024-002",
-    status: "unmatched",
-    matchedReceipts: [],
-    accountId: "ba1",
+    matchedReceipts: ["rcpt-1"],
   },
 ];
 
 export const initialCashFlowCategories = [
-  { id: "rev1", name: "Client Payments", type: "income" },
-  { id: "rev2", name: "Interest Income", type: "income" },
-  { id: "rev3", name: "Other Income", type: "income" },
-  { id: "exp1", name: "Salaries", type: "expense" },
-  { id: "exp2", name: "Office Rent", type: "expense" },
-  { id: "exp3", name: "Software Subscriptions", type: "expense" },
-  { id: "exp4", name: "Marketing", type: "expense" },
-  { id: "exp5", name: "Utilities", type: "expense" },
+  { id: "cf-1", name: "Sales Revenue", type: "income", isActive: true },
+  { id: "cf-2", name: "Service Revenue", type: "income", isActive: true },
+  { id: "cf-3", name: "Supplier Payments", type: "expense", isActive: true },
+  { id: "cf-4", name: "Salary & Wages", type: "expense", isActive: true },
+  { id: "cf-5", name: "Office Expenses", type: "expense", isActive: true },
+  { id: "cf-6", name: "Loan Receipt", type: "income", isActive: true },
+  { id: "cf-7", name: "Loan Repayment", type: "expense", isActive: true },
+];
+
+// Fixed Assets Sample Data
+export const initialFixedAssets = [
+  {
+    id: "fa-1",
+    name: "Office Building",
+    category: "building",
+    cost: 5000000,
+    purchaseDate: "2020-01-15",
+    usefulLife: 30,
+    depreciationMethod: "straight-line",
+    salvageValue: 500000,
+    accumulatedDepreciation: 500000,
+    netBookValue: 4500000,
+    currentValue: 4500000,
+    location: "Mumbai",
+    department: "Administration",
+    status: "active",
+    isInsured: true,
+    insuranceExpiry: "2024-12-31",
+  },
+  {
+    id: "fa-2",
+    name: "Delivery Van",
+    category: "vehicle",
+    cost: 800000,
+    purchaseDate: "2022-03-10",
+    usefulLife: 8,
+    depreciationMethod: "straight-line",
+    salvageValue: 80000,
+    accumulatedDepreciation: 90000,
+    netBookValue: 710000,
+    currentValue: 710000,
+    location: "Delhi",
+    department: "Operations",
+    status: "active",
+    isInsured: true,
+    insuranceExpiry: "2024-06-30",
+  },
+];
+
+export const initialassetCategories = [
+  { id: "cat-1", name: "Land", code: "LAND", isActive: true },
+  { id: "cat-2", name: "Building", code: "BLDG", isActive: true },
+  { id: "cat-3", name: "Vehicle", code: "VEH", isActive: true },
+  { id: "cat-4", name: "Equipment", code: "EQP", isActive: true },
+  { id: "cat-5", name: "Furniture", code: "FURN", isActive: true },
+  { id: "cat-6", name: "Computer", code: "COMP", isActive: true },
+];
+
+export const initialDepreciationMethods = [
+  {
+    id: "dep-1",
+    name: "Straight Line",
+    code: "SLM",
+    formula: "(Cost - Salvage) / Useful Life",
+  },
+  {
+    id: "dep-2",
+    name: "Declining Balance",
+    code: "DB",
+    formula: "Book Value * (Rate / Useful Life)",
+  },
+  {
+    id: "dep-3",
+    name: "Double Declining",
+    code: "DDB",
+    formula: "Book Value * (2 / Useful Life)",
+  },
+  {
+    id: "dep-4",
+    name: "Units of Production",
+    code: "UOP",
+    formula: "(Cost - Salvage) * (Units This Period / Total Units)",
+  },
+];
+
+export const initialLocations = [
+  { id: "loc-1", name: "Mumbai HQ", code: "BOM", isActive: true },
+  { id: "loc-2", name: "Delhi Branch", code: "DEL", isActive: true },
+  { id: "loc-3", name: "Bangalore Office", code: "BLR", isActive: true },
+  { id: "loc-4", name: "Chennai Unit", code: "MAA", isActive: true },
+];
+
+export const initialDepartments = [
+  { id: "dept-1", name: "Administration", code: "ADMIN", isActive: true },
+  { id: "dept-2", name: "Sales", code: "SALES", isActive: true },
+  { id: "dept-3", name: "Marketing", code: "MKT", isActive: true },
+  { id: "dept-4", name: "Operations", code: "OPS", isActive: true },
+  { id: "dept-5", name: "IT", code: "IT", isActive: true },
+  { id: "dept-6", name: "HR", code: "HR", isActive: true },
+];
+
+// Consolidation Sample Data
+export const consolidationEntities = [
+  {
+    id: "entity-1",
+    name: "HQ - Mumbai",
+    code: "HQ",
+    currency: "INR",
+    exchangeRate: 1,
+    isActive: true,
+    type: "headquarters",
+    address: "Mumbai, India",
+    taxId: "GSTIN123456789",
+    contact: "manager@hq.com",
+  },
+  {
+    id: "entity-2",
+    name: "Delhi Branch",
+    code: "DEL",
+    currency: "INR",
+    exchangeRate: 1,
+    isActive: true,
+    type: "branch",
+    address: "Delhi, India",
+    taxId: "GSTIN123456790",
+    contact: "branch.delhi@company.com",
+  },
+  {
+    id: "entity-3",
+    name: "Bangalore Unit",
+    code: "BLR",
+    currency: "INR",
+    exchangeRate: 1,
+    isActive: true,
+    type: "branch",
+    address: "Bangalore, India",
+    taxId: "GSTIN123456791",
+    contact: "unit.blr@company.com",
+  },
+  {
+    id: "entity-4",
+    name: "US Subsidiary",
+    code: "USA",
+    currency: "USD",
+    exchangeRate: 83.25,
+    isActive: true,
+    type: "subsidiary",
+    address: "New York, USA",
+    taxId: "EIN123456789",
+    contact: "us@company.com",
+  },
+];
+
+export const initialIntercompanyTransactions = [
+  {
+    id: "ict-1",
+    fromEntity: "entity-1",
+    toEntity: "entity-2",
+    amount: 500000,
+    currency: "INR",
+    date: "2024-01-10",
+    description: "Intercompany Loan",
+    type: "loan",
+    status: "active",
+    reconciliationStatus: "pending",
+  },
+  {
+    id: "ict-2",
+    fromEntity: "entity-1",
+    toEntity: "entity-4",
+    amount: 10000,
+    currency: "USD",
+    date: "2024-01-15",
+    description: "Management Fees",
+    type: "fee",
+    status: "completed",
+    reconciliationStatus: "reconciled",
+  },
 ];

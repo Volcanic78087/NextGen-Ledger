@@ -1,6 +1,6 @@
 // src/context/QualityContext.js
 import React, { createContext, useContext, useReducer, useEffect } from "react";
-import { qualityData } from "../data/data"; // Sample data import
+import { qualityData } from "../data/qualityData";
 
 const QualityContext = createContext();
 

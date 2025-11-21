@@ -92,20 +92,22 @@ const modules = [
     icon: Package,
     submodules: [
       { path: "/inventory/dashboard", label: "Dashboard", icon: BarChart3 },
+      { path: "/inventory/products", label: "Products", icon: Boxes },
+      { path: "/inventory/warehouse", label: "Warehouse", icon: Warehouse },
       {
         path: "/inventory/stock",
         label: "Stock Management",
         icon: PackageSearch,
       },
-      { path: "/inventory/warehouse", label: "Warehouse", icon: Warehouse },
-      { path: "/inventory/products", label: "Products", icon: Boxes },
-      { path: "/inventory/suppliers", label: "Suppliers", icon: UserCheck },
-      { path: "/inventory/st", label: "Stock Transactions", icon: ArrowDownUp },
+      { path: "/inventory/quality", label: "Quality View", icon: ArrowDownUp },
+
+      { path: "/inventory/sales", label: "Sales View", icon: ArrowDownUp },
       {
         path: "/inventory/purchase_manage",
         label: "Purchase Management",
         icon: ShoppingCart,
       },
+      { path: "/inventory/suppliers", label: "Suppliers", icon: UserCheck },
       { path: "/inventory/reports", label: "Reports", icon: FileBarChart2 },
     ],
   },
