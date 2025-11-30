@@ -383,10 +383,10 @@ export default function Products() {
                       {product.category}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      ${product.unit_cost}
+                      ₹{product.unit_cost}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      ${product.selling_price}
+                      ₹{product.selling_price}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export default function Products() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      ${value.toLocaleString()}
+                      ₹{value.toLocaleString()}
                     </td>
                     <td className="px-4 py-3">
                       <span
