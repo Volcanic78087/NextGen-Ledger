@@ -1,4 +1,3 @@
-// src/pages/Finance/CostAccounting.jsx
 import React, { useState } from "react";
 import {
   BarChart2,
