@@ -66,7 +66,7 @@ const FinanceSupplyChain = () => {
         ))}
       </div>
 
-      {/* --- VENDORS TAB --- */}
+      {/* VENDORS TAB */}
       {activeTab === "vendors" && (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold mb-4">Vendors List</h2>
@@ -133,7 +133,7 @@ const FinanceSupplyChain = () => {
         </div>
       )}
 
-      {/* --- CASH FLOW TAB --- */}
+      {/*  CASH FLOW TAB  */}
       {activeTab === "cashflow" && (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold mb-4">Cash Flow Overview</h2>
@@ -163,7 +163,7 @@ const FinanceSupplyChain = () => {
         </div>
       )}
 
-      {/* --- KPIs TAB --- */}
+      {/*  KPIs TAB  */}
       {activeTab === "kpis" && (
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-lg font-semibold mb-4">
