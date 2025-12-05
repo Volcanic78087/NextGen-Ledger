@@ -112,10 +112,10 @@ import BankAccounts from "./pages/Finance/BankAccounts";
 import Consolidation from "./pages/Finance/Consolidation";
 import SalesIntegrationView from "./pages/Inventory/SalesIntegrationView";
 import QualityIntegrationView from "./pages/Inventory/QualityIntegrationView";
+import MaterialLedger from "./pages/Finance/MaterialLedger";
 
-/* ------------------------------------------------------------------ */
 /* Layout (Navbar + Sidebar + Main) */
-/* ------------------------------------------------------------------ */
+
 const Layout = ({ children }) => (
   <div className="flex flex-col h-screen bg-gray-50 text-gray-800">
     <Navbar />
@@ -133,9 +133,8 @@ const Layout = ({ children }) => (
   </div>
 );
 
-/* ------------------------------------------------------------------ */
 /* Application Routes */
-/* ------------------------------------------------------------------ */
+
 const AppRoutes = () => {
   const { user } = useAuth();
 
@@ -617,6 +616,16 @@ const AppRoutes = () => {
                       <ProtectedRoute>
                         <FinanceProvider>
                           <Consolidation />
+                        </FinanceProvider>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/finance/product-costing"
+                    element={
+                      <ProtectedRoute>
+                        <FinanceProvider>
+                          <MaterialLedger />
                         </FinanceProvider>
                       </ProtectedRoute>
                     }

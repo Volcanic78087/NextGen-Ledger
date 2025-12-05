@@ -203,7 +203,11 @@ const modules = [
         label: "Fixed Assets Management",
         icon: Building,
       },
-      { path: "/finance/bank", label: "Bank & Cash Management" },
+      {
+        path: "/finance/bank",
+        label: "Bank & Cash Management",
+        icon: CreditCard,
+      },
       {
         path: "/finance/bf",
         label: "Budgeting and Forecasting",
@@ -225,9 +229,16 @@ const modules = [
         icon: ShieldCheck,
       },
       { path: "/finance/reports", label: "Reports", icon: FileBarChart2 },
-      { path: "/finance/consolidation", label: "Financial Consolidation" },
-      { path: "/finance/cost-center", label: "Cost Center/Profit Center" },
-      { path: "/finance/product-costing", label: "Material Ledger" },
+      {
+        path: "/finance/consolidation",
+        label: "Financial Consolidation",
+        icon: Layers,
+      },
+      {
+        path: "/finance/product-costing",
+        label: "Inventory Ledger",
+        icon: FileSpreadsheet,
+      },
     ],
   },
 
