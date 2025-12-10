@@ -113,6 +113,9 @@ import Consolidation from "./pages/Finance/Consolidation";
 import SalesIntegrationView from "./pages/Inventory/SalesIntegrationView";
 import QualityIntegrationView from "./pages/Inventory/QualityIntegrationView";
 import MaterialLedger from "./pages/Finance/MaterialLedger";
+import InboundModule from "./pages/Logistics/Inbound";
+import OutboundModule from "./pages/Logistics/Outbound";
+import { LogisticsProvider } from "./context/logisticContext";
 
 /* Layout (Navbar + Sidebar + Main) */
 
@@ -694,14 +697,26 @@ const AppRoutes = () => {
                   />
 
                   {/* Logistics */}
-                  {/* <Route
-                    path="/logistics/warehouse"
+                  <Route
+                    path="/logistics/inbound"
                     element={
                       <ProtectedRoute>
-                        <WarehouseManagement />
+                        <LogisticsProvider>
+                          <InboundModule />
+                        </LogisticsProvider>
                       </ProtectedRoute>
                     }
-                  /> */}
+                  />
+                  <Route
+                    path="/logistics/outbound"
+                    element={
+                      <ProtectedRoute>
+                        <LogisticsProvider>
+                          <OutboundModule />
+                        </LogisticsProvider>
+                      </ProtectedRoute>
+                    }
+                  />
 
                   {/* Production */}
                   <Route

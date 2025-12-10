@@ -268,24 +268,14 @@ const modules = [
     icon: Truck,
     submodules: [
       {
-        path: "/logistics/warehouse",
-        label: "Warehouse Management",
-        icon: Warehouse,
-      },
-      {
-        path: "/logistics/transport",
-        label: "Transport Management",
+        path: "/logistics/inbound",
+        label: "Inbound Delivery",
         icon: Truck,
       },
       {
-        path: "/logistics/cross-docking",
-        label: "Cross-Docking & Transfer",
-        icon: ArrowLeftRight,
-      },
-      {
-        path: "/logistics/packaghandling",
-        label: "Packaging & Handling",
-        icon: Package,
+        path: "/logistics/outbound",
+        label: "Outbound Delivery",
+        icon: Truck,
       },
     ],
   },
